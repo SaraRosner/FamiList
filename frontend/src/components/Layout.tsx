@@ -31,7 +31,16 @@ export default function Layout() {
                     דוחות
                   </Link>
                   <Link to="/events" className="text-gray-700 hover:text-primary-600 transition-colors">
-                    אירועים
+                    רשומות
+                  </Link>
+                  <Link to="/chat" className="text-gray-700 hover:text-primary-600 transition-colors">
+                    צ'אטים
+                  </Link>
+                  <Link to="/family-events" className="text-gray-700 hover:text-primary-600 transition-colors">
+                    אירועים משפחתיים
+                  </Link>
+                  <Link to="/calendar" className="text-gray-700 hover:text-primary-600 transition-colors">
+                    יומן
                   </Link>
                 </>
               )}

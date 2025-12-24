@@ -63,7 +63,7 @@ export default function Events() {
       const res = await axios.get('/api/events', { params });
       setEvents(res.data.events);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'תקלה בטעינת האירועים');
+      setError(err.response?.data?.error || 'תקלה בטעינת הרשומות');
     } finally {
       setLoading(false);
     }
@@ -90,7 +90,7 @@ export default function Events() {
       });
       loadEvents();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'תקלה בשמירת האירוע');
+      setError(err.response?.data?.error || 'תקלה בשמירת הרשומה');
     } finally {
       setSaving(false);
     }
@@ -109,9 +109,9 @@ export default function Events() {
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-purple-100 via-pink-100 to-orange-100 rounded-2xl p-8 shadow-inner border border-white/60">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">אירועים עם סבא וסבתא 💜</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">רשומות עם סבא וסבתא 💜</h1>
         <p className="text-gray-700 text-sm md:text-base">
-          תיעוד אירועים עדין עוזר לנו לשים לב לשינויים קטנים בזמן. אפשר לתעד זיכרון מבולבל, רגע מתוק,
+          תיעוד רשומות עדין עוזר לנו לשים לב לשינויים קטנים בזמן. אפשר לתעד זיכרון מבולבל, רגע מתוק,
           או כל דבר שרוצים לזכור או לעקוב אחריו.
         </p>
       </div>
@@ -119,7 +119,7 @@ export default function Events() {
       <div className="grid lg:grid-cols-5 gap-6">
         <div className="card lg:col-span-2 bg-white/90 border border-purple-100">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            ✍️ תעדו אירוע חדש
+            ✍️ תעדו רשומה חדשה
           </h2>
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -188,14 +188,14 @@ export default function Events() {
             </div>
 
             <button type="submit" className="btn-primary w-full shadow hover:shadow-md" disabled={saving}>
-              {saving ? 'שומר...' : 'שמור אירוע'}
+              {saving ? 'שומר...' : 'שמור רשומה'}
             </button>
           </form>
         </div>
 
         <div className="card lg:col-span-3 bg-white/90 border border-orange-100">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            🎯 סינון אירועים
+            🎯 סינון רשומות
           </h2>
           <div className="space-y-4">
             <div>
@@ -227,14 +227,14 @@ export default function Events() {
       <div className="card bg-white/95 border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-bold">אירועים אחרונים</h2>
+            <h2 className="text-2xl font-bold">רשומות אחרונות</h2>
             <p className="text-sm text-gray-500">מסודרים לפי סדר כרונולוגי יורד</p>
           </div>
         </div>
         {loading ? (
-          <div className="text-center py-8">טוען אירועים...</div>
+          <div className="text-center py-8">טוען רשומות...</div>
         ) : events.length === 0 ? (
-          <div className="text-gray-500 text-center py-8">אין אירועים בטווח הזמן שנבחר.</div>
+          <div className="text-gray-500 text-center py-8">אין רשומות בטווח הזמן שנבחר.</div>
         ) : (
           <div className="space-y-3">
             {events.map((event) => (
@@ -248,7 +248,7 @@ export default function Events() {
                     {SEVERITY_LABELS[event.severity] || event.severity}
                   </span>
                 </div>
-                <div className="font-semibold text-purple-700 text-sm mb-1">{event.category || 'אירוע כללי'}</div>
+                <div className="font-semibold text-purple-700 text-sm mb-1">{event.category || 'רשומה כללית'}</div>
                 <p className="text-gray-700 text-sm whitespace-pre-line leading-relaxed">{event.description}</p>
                 <div className="text-xs text-gray-400 mt-3 border-t pt-2">
                   תועד על ידי {event.recorder_name}

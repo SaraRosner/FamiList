@@ -6,6 +6,9 @@ import FamilySetup from './pages/FamilySetup';
 import Dashboard from './pages/Dashboard';
 import Reports from './pages/Reports';
 import Events from './pages/Events';
+import Chat from './pages/Chat';
+import FamilyEvents from './pages/FamilyEvents';
+import Calendar from './pages/Calendar';
 import Layout from './components/Layout';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -33,8 +36,11 @@ function App() {
           }>
             <Route index element={<Dashboard />} />
             <Route path="family-setup" element={<FamilySetup />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="events" element={<Events />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="events" element={<Events />} />
+              <Route path="chat" element={<Chat />} />
+              <Route path="family-events" element={<FamilyEvents />} />
+              <Route path="calendar" element={<Calendar />} />
           </Route>
         </Routes>
       </AuthProvider>

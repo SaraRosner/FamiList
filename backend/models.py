@@ -14,6 +14,8 @@ class Family(Base):
     users = relationship("User", back_populates="family")
     tasks = relationship("Task", back_populates="family")
     reminders = relationship("Reminder", back_populates="family")
+    chat_threads = relationship("ChatThread", back_populates="family")
+    family_events = relationship("FamilyEvent", back_populates="family")
 
 
 class User(Base):
@@ -104,4 +106,51 @@ class Event(Base):
 
     family = relationship("Family")
     recorder = relationship("User")
+
+
+class ChatThread(Base):
+    __tablename__ = "chat_threads"
+
+    id = Column(Integer, primary_key=True, index=True)
+    family_id = Column(Integer, ForeignKey("families.id"), nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    title = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    family = relationship("Family", back_populates="chat_threads")
+    creator = relationship("User")
+    messages = relationship("ChatMessage", back_populates="thread", cascade="all, delete-orphan")
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    thread_id = Column(Integer, ForeignKey("chat_threads.id"), nullable=False)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    message = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    thread = relationship("ChatThread", back_populates="messages")
+    sender = relationship("User")
+
+
+class FamilyEvent(Base):
+    __tablename__ = "family_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    family_id = Column(Integer, ForeignKey("families.id"), nullable=False)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    start_date = Column(DateTime(timezone=True), nullable=False)
+    end_date = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # Relationships
+    family = relationship("Family", back_populates="family_events")
+    creator = relationship("User")
 

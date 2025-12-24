@@ -12,6 +12,10 @@
 - **Priority Levels**: Organize tasks by urgency (high, medium, low)
 - **Reminders**: Automatic reminder system for tasks and reports
 - **Family-Friendly Language**: Non-judgmental, supportive messaging
+- **Family Chat**: Create chat threads for family communication
+- **Family Events**: Plan and track upcoming family events
+- **Combined Calendar**: Monthly and weekly views showing tasks and events together
+- **Care Records**: Log and review caregiver observations over time
 
 ## 📋 Core Screens
 
@@ -22,7 +26,10 @@
    - המשימות שלי (My Tasks)
    - בוצעו (Completed)
 4. **Reports** - Fairness statistics, open tasks, recent completions
-5. **Events Tab** - Log and review caregiver events (mental/cognitive observations)
+5. **Records (רשומות)** - Log and review caregiver observations (mental/cognitive events)
+6. **Chat (צ'אטים)** - Family chat threads for communication
+7. **Family Events (אירועים משפחתיים)** - Plan and manage upcoming family events
+8. **Calendar (יומן)** - Combined monthly/weekly view of tasks and events
 
 ## 🛠️ Technology Stack
 
@@ -174,9 +181,9 @@ npm run preview
 3. View contribution statistics for each family member
 4. Review open tasks and recent completions
 
-### Recording Caregiver Events
+### Recording Caregiver Events (Records)
 
-1. Navigate to "אירועים" (Events) from the top menu
+1. Navigate to "רשומות" (Records) from the top menu
 2. Fill in:
    - Subject (סבא/סבתא)
    - When it happened
@@ -185,6 +192,34 @@ npm run preview
    - Description of the event
 3. Submit the event and it joins the timeline
 4. Use the filters (1/3/6/12 months, per-subject) to review trends for early signs of decline
+
+### Family Chat
+
+1. Navigate to "צ'אטים" (Chats) from the top menu
+2. Create a new chat thread with a custom title
+3. Send messages in real-time
+4. All family members can participate in the conversation
+
+### Family Events
+
+1. Navigate to "אירועים משפחתיים" (Family Events) from the top menu
+2. Click "הוסף אירוע משפחתי" (Add Family Event)
+3. Fill in:
+   - Title (required)
+   - Description (optional)
+   - Start date and time (required)
+   - End date and time (optional)
+4. View all upcoming events in chronological order
+5. Edit or delete events as needed
+
+### Calendar View
+
+1. Navigate to "יומן" (Calendar) from the top menu
+2. Switch between monthly and weekly views
+3. See all tasks (with due dates) and family events in one view
+4. Click on any item to view details
+5. Navigate between months/weeks using arrow buttons
+6. Tasks are color-coded by priority, events are shown in blue
 
 ## 🗄️ Database Schema
 
@@ -195,7 +230,10 @@ The application uses SQLite with SQLAlchemy ORM with the following tables:
 - **tasks**: Caregiving tasks
 - **task_history**: Task action history for tracking
 - **reminders**: Scheduled reminders
-- **events**: Logged caregiver observations/events (subject, severity, description, recorder, timestamps)
+- **events**: Logged caregiver observations/records (subject, severity, description, recorder, timestamps)
+- **chat_threads**: Family chat conversation threads
+- **chat_messages**: Messages within chat threads
+- **family_events**: Upcoming family events (title, description, start/end dates)
 
 ## 🔒 Security
 
@@ -228,9 +266,24 @@ The application uses SQLite with SQLAlchemy ORM with the following tables:
 - `GET /api/reports/fairness` - Get fairness statistics
 - `GET /api/reports/open` - Get unclaimed/in-progress tasks breakdown
 
-### Events
+### Events (Care Records)
 - `POST /api/events` - Log a new caregiver event
 - `GET /api/events?months=3&subject=grandfather` - Fetch recent events with filters (months default 1)
+
+### Chat
+- `GET /api/chat/threads` - Get all chat threads for the family
+- `POST /api/chat/threads` - Create a new chat thread
+- `GET /api/chat/threads/{thread_id}` - Get thread with messages
+- `POST /api/chat/threads/{thread_id}/messages` - Send a message in a thread
+
+### Family Events
+- `GET /api/family-events` - Get all family events (chronological order)
+- `POST /api/family-events` - Create a new family event
+- `PUT /api/family-events/{event_id}` - Update a family event
+- `DELETE /api/family-events/{event_id}` - Delete a family event
+
+### Calendar
+- `GET /api/calendar?start_date=YYYY-MM-DD&end_date=YYYY-MM-DD` - Get tasks and events for date range
 
 ## 🎨 UI/UX Principles
 
@@ -259,11 +312,13 @@ FastAPI provides automatic interactive API documentation:
 - Email/SMS integration for reminders
 - Push notifications
 - Mobile app (React Native)
-- Calendar integration
+- Real-time chat updates (WebSockets)
+- Calendar notifications for upcoming events
 - Photo sharing for task completion
 - Visit scheduling for grandchildren
 - Medication tracking
 - Medical appointment management
+- Task recurrence/scheduling
 
 ## 📝 License
 

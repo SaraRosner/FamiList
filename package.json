@@ -1,0 +1,15 @@
+{
+  "name": "familist",
+  "version": "1.0.0",
+  "description": "Family coordination tool for managing caregiving tasks",
+  "main": "index.js",
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "install:frontend": "cd frontend && npm install"
+  },
+  "keywords": ["caregiving", "family", "tasks"],
+  "author": "",
+  "license": "MIT"
+}
+

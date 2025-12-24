@@ -1,0 +1,12 @@
+fastapi==0.95.2
+uvicorn==0.22.0
+sqlalchemy==2.0.23
+PyJWT==2.8.0
+passlib==1.7.4
+python-multipart==0.0.6
+python-dotenv==1.0.0
+apscheduler==3.10.4
+pydantic==1.10.8
+email-validator==2.0.0
+requests==2.32.3
+

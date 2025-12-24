@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useLanguage } from '../context/LanguageContext';
 
 interface EditTaskModalProps {
   task: any;
@@ -8,6 +9,7 @@ interface EditTaskModalProps {
 }
 
 export default function EditTaskModal({ task, onClose, onTaskUpdated }: EditTaskModalProps) {
+  const { t } = useLanguage();
   const [title, setTitle] = useState(task.title || '');
   const [description, setDescription] = useState(task.description || '');
   const [priority, setPriority] = useState(task.priority || 'medium');
@@ -62,7 +64,7 @@ export default function EditTaskModal({ task, onClose, onTaskUpdated }: EditTask
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg max-w-md w-full p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">עריכת משימה</h2>
+          <h2 className="text-2xl font-bold">{t('editTask.title')}</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">×</button>
         </div>
 
@@ -72,33 +74,33 @@ export default function EditTaskModal({ task, onClose, onTaskUpdated }: EditTask
 
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="block text-gray-700 mb-2">כותרת *</label>
+            <label className="block text-gray-700 mb-2">{t('createTask.taskTitle')} *</label>
             <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} required />
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">תיאור</label>
+            <label className="block text-gray-700 mb-2">{t('createTask.description')}</label>
             <textarea className="input" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">עדיפות</label>
+            <label className="block text-gray-700 mb-2">{t('createTask.priority')}</label>
             <select className="input" value={priority} onChange={(e) => setPriority(e.target.value)}>
-              <option value="low">נמוכה</option>
-              <option value="medium">בינונית</option>
-              <option value="high">דחופה</option>
+              <option value="low">{t('createTask.priorityLow')}</option>
+              <option value="medium">{t('createTask.priorityMedium')}</option>
+              <option value="high">{t('createTask.priorityHigh')}</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">תאריך יעד</label>
+            <label className="block text-gray-700 mb-2">{t('createTask.dueDate')}</label>
             <input type="date" className="input" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">מטפל/ת</label>
+            <label className="block text-gray-700 mb-2">{t('editTask.assignee')}</label>
             <select className="input" value={assignee as any} onChange={(e) => setAssignee(e.target.value === 'none' ? 'none' : Number(e.target.value))}>
-              <option value="none">ללא (החזר למשימות ללא בעלים)</option>
+              <option value="none">{t('editTask.noAssignee')}</option>
               {members.map((m) => (
                 <option key={m.id} value={m.id}>{m.name}</option>
               ))}
@@ -106,8 +108,8 @@ export default function EditTaskModal({ task, onClose, onTaskUpdated }: EditTask
           </div>
 
           <div className="flex gap-3 pt-4">
-            <button type="submit" className="btn-primary flex-1" disabled={saving}>{saving ? 'שומר...' : 'שמור'}</button>
-            <button type="button" onClick={onClose} className="btn-secondary" disabled={saving}>ביטול</button>
+            <button type="submit" className="btn-primary flex-1" disabled={saving}>{saving ? t('editTask.updating') : t('editTask.update')}</button>
+            <button type="button" onClick={onClose} className="btn-secondary" disabled={saving}>{t('common.cancel')}</button>
           </div>
         </form>
       </div>

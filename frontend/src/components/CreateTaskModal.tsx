@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { useLanguage } from '../context/LanguageContext';
 
 interface CreateTaskModalProps {
   onClose: () => void;
@@ -7,6 +8,7 @@ interface CreateTaskModalProps {
 }
 
 export default function CreateTaskModal({ onClose, onTaskCreated }: CreateTaskModalProps) {
+  const { t } = useLanguage();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('medium');
@@ -38,7 +40,7 @@ export default function CreateTaskModal({ onClose, onTaskCreated }: CreateTaskMo
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg max-w-md w-full p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">משימה חדשה</h2>
+          <h2 className="text-2xl font-bold">{t('createTask.title')}</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-2xl"
@@ -55,43 +57,43 @@ export default function CreateTaskModal({ onClose, onTaskCreated }: CreateTaskMo
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-gray-700 mb-2">כותרת *</label>
+            <label className="block text-gray-700 mb-2">{t('createTask.taskTitle')} *</label>
             <input
               type="text"
               className="input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              placeholder='לדוגמה: "ביקור אצל הרופא"'
+              placeholder={t('createTask.taskTitlePlaceholder')}
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">תיאור</label>
+            <label className="block text-gray-700 mb-2">{t('createTask.description')}</label>
             <textarea
               className="input"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="פרטים נוספים על המשימה..."
+              placeholder={t('createTask.descriptionPlaceholder')}
             />
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">עדיפות</label>
+            <label className="block text-gray-700 mb-2">{t('createTask.priority')}</label>
             <select
               className="input"
               value={priority}
               onChange={(e) => setPriority(e.target.value)}
             >
-              <option value="low">נמוכה</option>
-              <option value="medium">בינונית</option>
-              <option value="high">דחופה</option>
+              <option value="low">{t('createTask.priorityLow')}</option>
+              <option value="medium">{t('createTask.priorityMedium')}</option>
+              <option value="high">{t('createTask.priorityHigh')}</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-gray-700 mb-2">תאריך יעד (אופציונלי)</label>
+            <label className="block text-gray-700 mb-2">{t('createTask.dueDate')}</label>
             <input
               type="date"
               className="input"
@@ -106,7 +108,7 @@ export default function CreateTaskModal({ onClose, onTaskCreated }: CreateTaskMo
               className="btn-primary flex-1"
               disabled={loading}
             >
-              {loading ? 'יוצר...' : 'צור משימה'}
+              {loading ? t('createTask.creating') : t('createTask.create')}
             </button>
             <button
               type="button"
@@ -114,7 +116,7 @@ export default function CreateTaskModal({ onClose, onTaskCreated }: CreateTaskMo
               className="btn-secondary"
               disabled={loading}
             >
-              ביטול
+              {t('common.cancel')}
             </button>
           </div>
         </form>

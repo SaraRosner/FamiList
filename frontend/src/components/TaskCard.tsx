@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import EditTaskModal from './EditTaskModal';
+import { useLanguage } from '../context/LanguageContext';
 
 interface Task {
   id: number;
@@ -12,6 +13,7 @@ interface Task {
   volunteer_name: string | null;
   creator_name: string;
   due_date: string | null;
+  created_at?: string;
 }
 
 interface TaskCardProps {
@@ -22,6 +24,7 @@ interface TaskCardProps {
 }
 
 export default function TaskCard({ task, userId, onUpdate, readonly = false }: TaskCardProps) {
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
 
@@ -31,11 +34,10 @@ export default function TaskCard({ task, userId, onUpdate, readonly = false }: T
     low: 'bg-green-100 text-green-800',
   };
 
-  const priorityLabels: Record<string, string> = {
-    high: 'דחוף',
-    medium: 'בינוני',
-    low: 'נמוך',
+  const getPriorityLabel = (priority: string) => {
+    return t(`taskCard.priority.${priority}`) || priority;
   };
+
 
   const handleVolunteer = async () => {
     setLoading(true);
@@ -91,10 +93,10 @@ export default function TaskCard({ task, userId, onUpdate, readonly = false }: T
             onClick={() => setShowEdit(true)}
             className="text-xs text-gray-600 hover:text-primary-700 underline"
           >
-            עריכה
+            {t('common.edit')}
           </button>
           <span className={`text-xs px-2 py-1 rounded ${priorityColors[task.priority]}`}>
-            {priorityLabels[task.priority]}
+            {getPriorityLabel(task.priority)}
           </span>
         </div>
       </div>
@@ -105,27 +107,27 @@ export default function TaskCard({ task, userId, onUpdate, readonly = false }: T
 
       <div className="text-xs text-gray-500 space-y-1 mb-3">
         <div>
-          נוצר ע"י {task.creator_name}
-          {task.created_at ? ` בתאריך ${formatDate(task.created_at)}` : ''}
+          {t('taskCard.createdBy')} {task.creator_name}
+          {task.created_at ? ` ${t('taskCard.onDate')} ${formatDate(task.created_at)}` : ''}
         </div>
         {task.volunteer_name && (
-          <div>מתנדב/ת: {task.volunteer_name}</div>
+          <div>{t('taskCard.volunteer')}: {task.volunteer_name}</div>
         )}
         {task.due_date && (
-          <div>תאריך יעד: {formatDate(task.due_date)}</div>
+          <div>{t('taskCard.dueDate')}: {formatDate(task.due_date)}</div>
         )}
       </div>
 
       {!readonly && (
         <div className="flex gap-2">
           {task.status === 'unclaimed' && (
-            <button
-              onClick={handleVolunteer}
-              disabled={loading}
-              className="btn-primary text-sm flex-1"
-            >
-              אני אקח את זה 💪
-            </button>
+              <button
+                onClick={handleVolunteer}
+                disabled={loading}
+                className="btn-primary text-sm flex-1"
+              >
+                {t('taskCard.takeTask')} 💪
+              </button>
           )}
 
           {task.status === 'in_progress' && task.volunteer_id === userId && (
@@ -135,14 +137,14 @@ export default function TaskCard({ task, userId, onUpdate, readonly = false }: T
                 disabled={loading}
                 className="btn-primary text-sm flex-1"
               >
-                ✓ סיימתי
+                ✓ {t('taskCard.completed')}
               </button>
               <button
                 onClick={handleUnvolunteer}
                 disabled={loading}
                 className="btn-secondary text-sm"
               >
-                בטל
+                {t('taskCard.cancel')}
               </button>
             </>
           )}
@@ -156,8 +158,8 @@ export default function TaskCard({ task, userId, onUpdate, readonly = false }: T
           }`}
         >
           {task.status === 'completed'
-            ? `✓ בוצע על ידי ${task.volunteer_name}`
-            : `בטיפול אצל ${task.volunteer_name}`}
+            ? `✓ ${t('taskCard.completedBy')} ${task.volunteer_name}`
+            : `${t('taskCard.handledBy')} ${task.volunteer_name}`}
         </div>
       )}
 

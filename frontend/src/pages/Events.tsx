@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useLanguage } from '../context/LanguageContext';
 
 interface Event {
   id: number;
@@ -11,20 +12,9 @@ interface Event {
   recorder_name: string;
 }
 
-const SUBJECT_LABELS: Record<string, string> = {
-  grandfather: 'סבא',
-  grandmother: 'סבתא',
-};
-
 const SUBJECT_ICONS: Record<string, string> = {
   grandfather: '👴🏻',
   grandmother: '👵🏻',
-};
-
-const SEVERITY_LABELS: Record<string, string> = {
-  low: 'קל',
-  medium: 'בינוני',
-  high: 'גבוה',
 };
 
 const SEVERITY_COLORS: Record<string, string> = {
@@ -34,11 +24,21 @@ const SEVERITY_COLORS: Record<string, string> = {
 };
 
 export default function Events() {
+  const { t, language } = useLanguage();
   const [events, setEvents] = useState<Event[]>([]);
   const [months, setMonths] = useState(1);
   const [subject, setSubject] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const getSubjectLabel = (subject: string) => {
+    return t(`events.${subject}`) || subject;
+  };
+
+  const getSeverityLabel = (severity: string) => {
+    const key = severity === 'low' ? 'severityLow' : severity === 'medium' ? 'severityMedium' : 'severityHigh';
+    return t(`events.${key}`) || severity;
+  };
 
   const [formData, setFormData] = useState({
     subject: '',
@@ -63,7 +63,7 @@ export default function Events() {
       const res = await axios.get('/api/events', { params });
       setEvents(res.data.events);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'תקלה בטעינת הרשומות');
+      setError(err.response?.data?.error || t('events.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -90,7 +90,7 @@ export default function Events() {
       });
       loadEvents();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'תקלה בשמירת הרשומה');
+      setError(err.response?.data?.error || t('events.errorSaving'));
     } finally {
       setSaving(false);
     }
@@ -107,19 +107,18 @@ export default function Events() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={language === 'he' ? 'rtl' : 'ltr'}>
       <div className="bg-gradient-to-r from-purple-100 via-pink-100 to-orange-100 rounded-2xl p-8 shadow-inner border border-white/60">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">רשומות עם סבא וסבתא 💜</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('events.title')}</h1>
         <p className="text-gray-700 text-sm md:text-base">
-          תיעוד רשומות עדין עוזר לנו לשים לב לשינויים קטנים בזמן. אפשר לתעד זיכרון מבולבל, רגע מתוק,
-          או כל דבר שרוצים לזכור או לעקוב אחריו.
+          {t('events.subtitle')}
         </p>
       </div>
 
       <div className="grid lg:grid-cols-5 gap-6">
         <div className="card lg:col-span-2 bg-white/90 border border-purple-100">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            ✍️ תעדו רשומה חדשה
+            ✍️ {t('events.createRecord')}
           </h2>
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -128,21 +127,21 @@ export default function Events() {
           )}
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-sm text-gray-700 mb-1">על מי מדובר *</label>
+              <label className="block text-sm text-gray-700 mb-1">{t('events.aboutWho')} *</label>
               <select
                 className="input"
                 value={formData.subject}
                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                 required
               >
-                <option value="">בחרו</option>
-                <option value="grandfather">סבא</option>
-                <option value="grandmother">סבתא</option>
+                <option value="">{t('events.select')}</option>
+                <option value="grandfather">{t('events.grandfather')}</option>
+                <option value="grandmother">{t('events.grandmother')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-1">מתי קרה *</label>
+              <label className="block text-sm text-gray-700 mb-1">{t('events.whenOccurred')} *</label>
               <input
                 type="datetime-local"
                 className="input"
@@ -153,31 +152,31 @@ export default function Events() {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-1">רמת חשיבות *</label>
+              <label className="block text-sm text-gray-700 mb-1">{t('events.severity')} *</label>
               <select
                 className="input"
                 value={formData.severity}
                 onChange={(e) => setFormData({ ...formData, severity: e.target.value })}
               >
-                <option value="low">נמוכה</option>
-                <option value="medium">בינונית</option>
-                <option value="high">גבוהה</option>
+                <option value="low">{t('events.severityLow')}</option>
+                <option value="medium">{t('events.severityMedium')}</option>
+                <option value="high">{t('events.severityHigh')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-1">קטגוריה (אופציונלי)</label>
+              <label className="block text-sm text-gray-700 mb-1">{t('events.category')}</label>
               <input
                 type="text"
                 className="input"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                placeholder="לדוגמה: בלבול, שכחה, נפילה..."
+                placeholder={t('events.categoryPlaceholder')}
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-1">תיאור *</label>
+              <label className="block text-sm text-gray-700 mb-1">{t('events.description')} *</label>
               <textarea
                 className="input"
                 rows={4}
@@ -188,37 +187,37 @@ export default function Events() {
             </div>
 
             <button type="submit" className="btn-primary w-full shadow hover:shadow-md" disabled={saving}>
-              {saving ? 'שומר...' : 'שמור רשומה'}
+              {saving ? t('events.saving') : t('events.save')}
             </button>
           </form>
         </div>
 
         <div className="card lg:col-span-3 bg-white/90 border border-orange-100">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            🎯 סינון רשומות
+            🎯 {t('events.filter')}
           </h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-700 mb-1">כמה זמן אחורה?</label>
+              <label className="block text-sm text-gray-700 mb-1">{t('events.howLongAgo')}</label>
               <select className="input" value={months} onChange={(e) => setMonths(Number(e.target.value))}>
-                <option value={1}>חודש אחרון</option>
-                <option value={3}>3 חודשים</option>
-                <option value={6}>6 חודשים</option>
-                <option value={12}>שנה</option>
+                <option value={1}>{t('events.lastMonth')}</option>
+                <option value={3}>{t('events.threeMonths')}</option>
+                <option value={6}>{t('events.sixMonths')}</option>
+                <option value={12}>{t('events.year')}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-1">על מי?</label>
+              <label className="block text-sm text-gray-700 mb-1">{t('events.who')}</label>
               <select className="input" value={subject} onChange={(e) => setSubject(e.target.value)}>
-                <option value="">כולם</option>
-                <option value="grandfather">סבא</option>
-                <option value="grandmother">סבתא</option>
+                <option value="">{t('events.all')}</option>
+                <option value="grandfather">{t('events.grandfather')}</option>
+                <option value="grandmother">{t('events.grandmother')}</option>
               </select>
             </div>
 
             <button onClick={loadEvents} className="btn-secondary w-full">
-              רענן רשימה
+              {t('events.refresh')}
             </button>
           </div>
         </div>
@@ -227,14 +226,14 @@ export default function Events() {
       <div className="card bg-white/95 border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-bold">רשומות אחרונות</h2>
-            <p className="text-sm text-gray-500">מסודרים לפי סדר כרונולוגי יורד</p>
+            <h2 className="text-2xl font-bold">{t('events.recentRecords')}</h2>
+            <p className="text-sm text-gray-500">{t('events.sortedChronological')}</p>
           </div>
         </div>
         {loading ? (
-          <div className="text-center py-8">טוען רשומות...</div>
+          <div className="text-center py-8">{t('events.loading')}</div>
         ) : events.length === 0 ? (
-          <div className="text-gray-500 text-center py-8">אין רשומות בטווח הזמן שנבחר.</div>
+          <div className="text-gray-500 text-center py-8">{t('events.noRecords')}</div>
         ) : (
           <div className="space-y-3">
             {events.map((event) => (
@@ -242,16 +241,16 @@ export default function Events() {
                 <div className="flex justify-between text-sm text-gray-500 mb-2">
                   <span className="flex items-center gap-2">
                     <span className="text-lg">{SUBJECT_ICONS[event.subject] || '👨‍👩‍👧'}</span>
-                    {SUBJECT_LABELS[event.subject] || event.subject} · {formatDate(event.occurred_at)}
+                    {getSubjectLabel(event.subject)} · {formatDate(event.occurred_at)}
                   </span>
                   <span className={`text-xs px-3 py-0.5 rounded-full border ${SEVERITY_COLORS[event.severity] || 'bg-gray-100 text-gray-700 border-gray-200'}`}>
-                    {SEVERITY_LABELS[event.severity] || event.severity}
+                    {getSeverityLabel(event.severity)}
                   </span>
                 </div>
-                <div className="font-semibold text-purple-700 text-sm mb-1">{event.category || 'רשומה כללית'}</div>
+                <div className="font-semibold text-purple-700 text-sm mb-1">{event.category || t('events.generalRecord')}</div>
                 <p className="text-gray-700 text-sm whitespace-pre-line leading-relaxed">{event.description}</p>
                 <div className="text-xs text-gray-400 mt-3 border-t pt-2">
-                  תועד על ידי {event.recorder_name}
+                  {t('events.recordedBy')} {event.recorder_name}
                 </div>
               </div>
             ))}

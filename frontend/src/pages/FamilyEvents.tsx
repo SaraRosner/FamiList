@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useLanguage } from '../context/LanguageContext';
 
 interface FamilyEvent {
   id: number;
@@ -14,6 +15,7 @@ interface FamilyEvent {
 }
 
 export default function FamilyEvents() {
+  const { t, language } = useLanguage();
   const [events, setEvents] = useState<FamilyEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -38,7 +40,7 @@ export default function FamilyEvents() {
       const res = await axios.get('/api/family-events');
       setEvents(res.data.events);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'תקלה בטעינת האירועים');
+      setError(err.response?.data?.error || t('familyEvents.errorLoading'));
     } finally {
       setLoading(false);
     }
@@ -71,7 +73,7 @@ export default function FamilyEvents() {
       setShowCreateModal(false);
       loadEvents();
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.response?.data?.error || 'תקלה ביצירת האירוע');
+      setError(err.response?.data?.detail || err.response?.data?.error || t('familyEvents.errorCreate'));
     }
   };
 
@@ -112,18 +114,18 @@ export default function FamilyEvents() {
       setEditingEvent(null);
       loadEvents();
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.response?.data?.error || 'תקלה בעדכון האירוע');
+      setError(err.response?.data?.detail || err.response?.data?.error || t('familyEvents.errorUpdate'));
     }
   };
 
   const handleDeleteEvent = async (id: number) => {
-    if (!confirm('האם אתה בטוח שברצונך למחוק את האירוע?')) return;
+    if (!confirm(t('familyEvents.deleteConfirm'))) return;
 
     try {
       await axios.delete(`/api/family-events/${id}`);
       loadEvents();
     } catch (err: any) {
-      setError(err.response?.data?.error || 'תקלה במחיקת האירוע');
+      setError(err.response?.data?.error || t('familyEvents.errorDelete'));
     }
   };
 
@@ -151,20 +153,20 @@ export default function FamilyEvents() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-xl text-gray-600">טוען...</div>
+        <div className="text-xl text-gray-600">{t('common.loading')}</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={language === 'he' ? 'rtl' : 'ltr'}>
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">אירועים משפחתיים 📅</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('familyEvents.title')}</h1>
         <button
           onClick={() => setShowCreateModal(true)}
           className="btn-primary flex items-center gap-2"
         >
-          <span>+ הוסף אירוע משפחתי</span>
+          <span>+ {t('familyEvents.addEvent')}</span>
         </button>
       </div>
 
@@ -177,8 +179,8 @@ export default function FamilyEvents() {
       <div className="card bg-white">
         {events.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            <p className="text-lg mb-2">אין אירועים משפחתיים עדיין</p>
-            <p className="text-sm">הוסף אירוע משפחתי כדי להתחיל</p>
+            <p className="text-lg mb-2">{t('familyEvents.noEvents')}</p>
+            <p className="text-sm">{t('familyEvents.noEventsHint')}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -200,7 +202,7 @@ export default function FamilyEvents() {
                       <p className="text-gray-700 mb-2">{event.description}</p>
                     )}
                     <p className="text-xs text-gray-500">
-                      נוצר על ידי {event.created_by_name}
+                      {t('familyEvents.createdBy')} {event.created_by_name}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -208,13 +210,13 @@ export default function FamilyEvents() {
                       onClick={() => handleEditEvent(event)}
                       className="text-primary-600 hover:text-primary-700 text-sm underline"
                     >
-                      עריכה
+                      {t('common.edit')}
                     </button>
                     <button
                       onClick={() => handleDeleteEvent(event.id)}
                       className="text-red-600 hover:text-red-700 text-sm underline"
                     >
-                      מחיקה
+                      {t('common.delete')}
                     </button>
                   </div>
                 </div>
@@ -228,11 +230,11 @@ export default function FamilyEvents() {
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">הוסף אירוע משפחתי</h2>
+            <h2 className="text-xl font-bold mb-4">{t('familyEvents.createModal')}</h2>
             <form onSubmit={handleCreateEvent} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  כותרת *
+                  {t('familyEvents.titleLabel')} *
                 </label>
                 <input
                   type="text"
@@ -244,7 +246,7 @@ export default function FamilyEvents() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  תיאור
+                  {t('familyEvents.description')}
                 </label>
                 <textarea
                   value={formData.description}
@@ -255,7 +257,7 @@ export default function FamilyEvents() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  תאריך התחלה *
+                  {t('familyEvents.startDate')} *
                 </label>
                 <input
                   type="date"
@@ -267,7 +269,7 @@ export default function FamilyEvents() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  שעת התחלה
+                  {t('familyEvents.startTime')}
                 </label>
                 <input
                   type="time"
@@ -278,7 +280,7 @@ export default function FamilyEvents() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  תאריך סיום (אופציונלי)
+                  {t('familyEvents.endDate')}
                 </label>
                 <input
                   type="date"
@@ -290,7 +292,7 @@ export default function FamilyEvents() {
               {formData.end_date && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    שעת סיום
+                    {t('familyEvents.endTime')}
                   </label>
                   <input
                     type="time"
@@ -316,10 +318,10 @@ export default function FamilyEvents() {
                   }}
                   className="btn-secondary"
                 >
-                  ביטול
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className="btn-primary">
-                  צור אירוע
+                  {t('familyEvents.create')}
                 </button>
               </div>
             </form>
@@ -331,11 +333,11 @@ export default function FamilyEvents() {
       {showEditModal && editingEvent && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">ערוך אירוע משפחתי</h2>
+            <h2 className="text-xl font-bold mb-4">{t('familyEvents.editModal')}</h2>
             <form onSubmit={handleUpdateEvent} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  כותרת *
+                  {t('familyEvents.titleLabel')} *
                 </label>
                 <input
                   type="text"
@@ -347,7 +349,7 @@ export default function FamilyEvents() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  תיאור
+                  {t('familyEvents.description')}
                 </label>
                 <textarea
                   value={formData.description}
@@ -358,7 +360,7 @@ export default function FamilyEvents() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  תאריך התחלה *
+                  {t('familyEvents.startDate')} *
                 </label>
                 <input
                   type="date"
@@ -370,7 +372,7 @@ export default function FamilyEvents() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  שעת התחלה
+                  {t('familyEvents.startTime')}
                 </label>
                 <input
                   type="time"
@@ -381,7 +383,7 @@ export default function FamilyEvents() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  תאריך סיום (אופציונלי)
+                  {t('familyEvents.endDate')}
                 </label>
                 <input
                   type="date"
@@ -393,7 +395,7 @@ export default function FamilyEvents() {
               {formData.end_date && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    שעת סיום
+                    {t('familyEvents.endTime')}
                   </label>
                   <input
                     type="time"
@@ -412,10 +414,10 @@ export default function FamilyEvents() {
                   }}
                   className="btn-secondary"
                 >
-                  ביטול
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" className="btn-primary">
-                  עדכן
+                  {t('familyEvents.update')}
                 </button>
               </div>
             </form>

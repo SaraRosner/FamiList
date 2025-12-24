@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Login() {
+  const { t, language } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -19,22 +21,22 @@ export default function Login() {
       await login(email, password);
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'שגיאה בהתחברות');
+      setError(err.response?.data?.error || t('login.error'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 px-4" dir={language === 'he' ? 'rtl' : 'ltr'}>
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-primary-600 mb-2">FamiList 💙</h1>
-          <p className="text-gray-600">ניהול טיפול משפחתי בקלות</p>
+          <p className="text-gray-600">{t('login.subtitle')}</p>
         </div>
 
         <div className="card">
-          <h2 className="text-2xl font-bold text-center mb-6">התחברות</h2>
+          <h2 className="text-2xl font-bold text-center mb-6">{t('login.title')}</h2>
 
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -44,7 +46,7 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-gray-700 mb-2">דוא"ל</label>
+              <label className="block text-gray-700 mb-2">{t('login.email')}</label>
               <input
                 type="email"
                 className="input"
@@ -56,7 +58,7 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-gray-700 mb-2">סיסמה</label>
+              <label className="block text-gray-700 mb-2">{t('login.password')}</label>
               <input
                 type="password"
                 className="input"
@@ -72,14 +74,14 @@ export default function Login() {
               className="btn-primary w-full"
               disabled={loading}
             >
-              {loading ? 'מתחבר...' : 'התחבר'}
+              {loading ? t('login.submitting') : t('login.submit')}
             </button>
           </form>
 
           <p className="text-center mt-6 text-gray-600">
-            עדיין אין לך חשבון?{' '}
+            {t('login.noAccount')}{' '}
             <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-              הירשם כאן
+              {t('login.registerLink')}
             </Link>
           </p>
         </div>

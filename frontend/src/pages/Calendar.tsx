@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface CalendarTask {
   id: number;
@@ -27,6 +28,7 @@ interface CalendarEvent {
 type CalendarItem = CalendarTask | CalendarEvent;
 
 export default function Calendar() {
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const [view, setView] = useState<'month' | 'week'>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -151,7 +153,7 @@ export default function Calendar() {
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('he-IL', {
+    return date.toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US', {
       year: 'numeric',
       month: 'long',
     });
@@ -160,7 +162,7 @@ export default function Calendar() {
   const formatWeekRange = () => {
     const start = getViewStartDate();
     const end = getViewEndDate();
-    return `${start.toLocaleDateString('he-IL', { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString('he-IL', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+    return `${start.toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US', { day: 'numeric', month: 'short' })} - ${end.toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}`;
   };
 
   const isToday = (date: Date) => {
@@ -192,27 +194,56 @@ export default function Calendar() {
   if (loading && items.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-xl text-gray-600">טוען...</div>
+        <div className="text-xl text-gray-600">{t('common.loading')}</div>
       </div>
     );
   }
 
+  const getDayLabels = (): string[] => {
+    const daysKey = language === 'he' 
+      ? ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש']
+      : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    try {
+      const days = t('calendar.days', { returnObjects: true });
+      return Array.isArray(days) ? days as string[] : daysKey;
+    } catch {
+      return daysKey;
+    }
+  };
+
+  const getPriorityLabel = (priority: string) => {
+    return t(`taskCard.priority.${priority}`) || priority;
+  };
+
+  const getStatusLabel = (status: string) => {
+    if (status === 'unclaimed') {
+      const label = t('tasks.unclaimed');
+      return label.includes('משימות') ? 'ללא בעלים' : label.includes('Tasks') ? 'Unclaimed' : label;
+    }
+    if (status === 'in_progress') {
+      const label = t('tasks.inProgressOthers');
+      return label.includes('אחרים') ? 'בביצוע' : label.includes('Others') ? 'In Progress' : label;
+    }
+    if (status === 'completed') return t('tasks.completed');
+    return status;
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={language === 'he' ? 'rtl' : 'ltr'}>
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">יומן משפחתי 📅</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('calendar.title')}</h1>
         <div className="flex gap-2">
           <button
             onClick={() => setView('month')}
             className={`px-4 py-2 rounded ${view === 'month' ? 'btn-primary' : 'btn-secondary'}`}
           >
-            חודש
+            {t('calendar.month')}
           </button>
           <button
             onClick={() => setView('week')}
             className={`px-4 py-2 rounded ${view === 'week' ? 'btn-primary' : 'btn-secondary'}`}
           >
-            שבוע
+            {t('calendar.week')}
           </button>
         </div>
       </div>
@@ -236,14 +267,14 @@ export default function Calendar() {
               →
             </button>
             <button onClick={navigateToday} className="btn-secondary text-sm">
-              היום
+              {t('calendar.today')}
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-7 gap-1">
           {/* Day headers */}
-          {['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'].map((day, idx) => (
+          {getDayLabels().map((day, idx) => (
             <div key={idx} className="text-center font-bold text-gray-700 p-2">
               {day}
             </div>
@@ -270,7 +301,7 @@ export default function Calendar() {
                     <button
                       key={`${item.type}-${item.id}`}
                       onClick={() => setSelectedItem(item)}
-                      className={`w-full text-left text-xs p-1 rounded truncate border ${
+                      className={`w-full ${language === 'he' ? 'text-right' : 'text-left'} text-xs p-1 rounded truncate border ${
                         item.type === 'task'
                           ? getPriorityColor(item.priority)
                           : 'bg-blue-100 text-blue-800 border-blue-300'
@@ -282,7 +313,7 @@ export default function Calendar() {
                   ))}
                   {dayItems.length > 3 && (
                     <div className="text-xs text-gray-500">
-                      +{dayItems.length - 3} עוד
+                      +{dayItems.length - 3} {t('calendar.more')}
                     </div>
                   )}
                 </div>
@@ -298,7 +329,7 @@ export default function Calendar() {
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-start mb-4">
               <h2 className="text-xl font-bold">
-                {selectedItem.type === 'task' ? '✓ משימה' : '📅 אירוע משפחתי'}
+                {selectedItem.type === 'task' ? t('calendar.task') : t('calendar.event')}
               </h2>
               <button
                 onClick={() => setSelectedItem(null)}
@@ -318,29 +349,27 @@ export default function Calendar() {
                 </div>
                 <div className="text-sm space-y-1">
                   <p>
-                    <span className="font-medium">תאריך יעד:</span>{' '}
-                    {new Date(selectedItem.due_date).toLocaleDateString('he-IL', {
+                    <span className="font-medium">{t('calendar.dueDate')}:</span>{' '}
+                    {new Date(selectedItem.due_date).toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
                     })}
                   </p>
                   <p>
-                    <span className="font-medium">עדיפות:</span>{' '}
-                    {selectedItem.priority === 'high' ? 'גבוהה' : selectedItem.priority === 'medium' ? 'בינונית' : 'נמוכה'}
+                    <span className="font-medium">{t('calendar.priority')}:</span>{' '}
+                    {getPriorityLabel(selectedItem.priority)}
                   </p>
                   <p>
-                    <span className="font-medium">סטטוס:</span>{' '}
-                    {selectedItem.status === 'unclaimed' ? 'ללא בעלים' :
-                     selectedItem.status === 'in_progress' ? 'בביצוע' :
-                     selectedItem.status === 'completed' ? 'הושלם' : selectedItem.status}
+                    <span className="font-medium">{t('calendar.status')}:</span>{' '}
+                    {getStatusLabel(selectedItem.status)}
                   </p>
                   <p>
-                    <span className="font-medium">נוצר על ידי:</span> {selectedItem.creator_name}
+                    <span className="font-medium">{t('calendar.createdBy')}:</span> {selectedItem.creator_name}
                   </p>
                   {selectedItem.volunteer_name && (
                     <p>
-                      <span className="font-medium">מתנדב:</span> {selectedItem.volunteer_name}
+                      <span className="font-medium">{t('calendar.volunteer')}:</span> {selectedItem.volunteer_name}
                     </p>
                   )}
                 </div>
@@ -355,8 +384,8 @@ export default function Calendar() {
                 </div>
                 <div className="text-sm space-y-1">
                   <p>
-                    <span className="font-medium">תאריך התחלה:</span>{' '}
-                    {new Date(selectedItem.start_date).toLocaleDateString('he-IL', {
+                    <span className="font-medium">{t('calendar.startDate')}:</span>{' '}
+                    {new Date(selectedItem.start_date).toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
@@ -366,8 +395,8 @@ export default function Calendar() {
                   </p>
                   {selectedItem.end_date && (
                     <p>
-                      <span className="font-medium">תאריך סיום:</span>{' '}
-                      {new Date(selectedItem.end_date).toLocaleDateString('he-IL', {
+                      <span className="font-medium">{t('calendar.endDate')}:</span>{' '}
+                      {new Date(selectedItem.end_date).toLocaleDateString(language === 'he' ? 'he-IL' : 'en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -377,7 +406,7 @@ export default function Calendar() {
                     </p>
                   )}
                   <p>
-                    <span className="font-medium">נוצר על ידי:</span> {selectedItem.creator_name}
+                    <span className="font-medium">{t('calendar.createdBy')}:</span> {selectedItem.creator_name}
                   </p>
                 </div>
               </div>
@@ -388,7 +417,7 @@ export default function Calendar() {
                 onClick={() => setSelectedItem(null)}
                 className="btn-primary"
               >
-                סגור
+                {t('calendar.close')}
               </button>
             </div>
           </div>

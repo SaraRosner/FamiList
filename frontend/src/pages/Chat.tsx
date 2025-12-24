@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ChatThread {
   id: number;
@@ -23,6 +24,7 @@ interface ChatMessage {
 }
 
 export default function Chat() {
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [selectedThread, setSelectedThread] = useState<ChatThread | null>(null);
@@ -77,7 +79,7 @@ export default function Chat() {
 
   const handleCreateThread = async () => {
     if (!newThreadTitle.trim()) {
-      alert('אנא הזן כותרת לשיחה');
+      alert(t('chat.enterTitle'));
       return;
     }
     
@@ -94,7 +96,7 @@ export default function Chat() {
     } catch (error: any) {
       console.error('Failed to create thread:', error);
       console.error('Error response:', error.response);
-      let errorMessage = 'שגיאה ביצירת שיחת צ\'אט';
+      let errorMessage = t('chat.errorCreate');
       if (error.response) {
         errorMessage = error.response.data?.detail || error.response.data?.error || errorMessage;
       } else if (error.message) {
@@ -118,7 +120,7 @@ export default function Chat() {
       await loadThreads(); // Refresh threads to update last_message
     } catch (error) {
       console.error('Failed to send message:', error);
-      alert('שגיאה בשליחת הודעה');
+      alert(t('chat.errorSend'));
     } finally {
       setSending(false);
     }
@@ -137,33 +139,33 @@ export default function Chat() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-xl text-gray-600">טוען...</div>
+        <div className="text-xl text-gray-600">{t('common.loading')}</div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-[calc(100vh-12rem)] gap-4">
+    <div className="flex h-[calc(100vh-12rem)] gap-4" dir={language === 'he' ? 'rtl' : 'ltr'}>
       {/* Threads List */}
       <div className="w-64 bg-white rounded-lg shadow-md p-4 flex flex-col">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">שיחות</h2>
+          <h2 className="text-xl font-bold">{t('chat.title')}</h2>
           <button
             onClick={() => setShowCreateModal(true)}
             className="btn-primary text-sm px-3 py-1"
           >
-            + חדש
+            + {t('chat.new')}
           </button>
         </div>
         <div className="flex-1 overflow-y-auto space-y-2">
           {threads.length === 0 ? (
-            <p className="text-gray-500 text-sm text-center py-4">אין שיחות עדיין</p>
+            <p className="text-gray-500 text-sm text-center py-4">{t('chat.noThreads')}</p>
           ) : (
             threads.map((thread) => (
               <button
                 key={thread.id}
                 onClick={() => setSelectedThread(thread)}
-                className={`w-full text-right p-3 rounded-lg border transition-colors ${
+                className={`w-full ${language === 'he' ? 'text-right' : 'text-left'} p-3 rounded-lg border transition-colors ${
                   selectedThread?.id === thread.id
                     ? 'bg-primary-100 border-primary-500'
                     : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
@@ -189,13 +191,13 @@ export default function Chat() {
           <>
             <div className="p-4 border-b">
               <h3 className="text-lg font-bold">{selectedThread.title}</h3>
-              <p className="text-sm text-gray-500">נוצרה על ידי {selectedThread.created_by_name}</p>
+              <p className="text-sm text-gray-500">{t('chat.createdBy')} {selectedThread.created_by_name}</p>
             </div>
             
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.length === 0 ? (
                 <div className="text-center text-gray-500 py-8">
-                  אין הודעות עדיין. התחל את השיחה!
+                  {t('chat.noMessages')}
                 </div>
               ) : (
                 messages.map((message) => (
@@ -230,7 +232,7 @@ export default function Chat() {
                   type="text"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="הקלד הודעה..."
+                  placeholder={t('chat.placeholder')}
                   className="input flex-1"
                   disabled={sending}
                 />
@@ -239,14 +241,14 @@ export default function Chat() {
                   className="btn-primary"
                   disabled={sending || !newMessage.trim()}
                 >
-                  {sending ? 'שולח...' : 'שלח'}
+                  {sending ? t('chat.sending') : t('chat.send')}
                 </button>
               </div>
             </form>
           </>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500">
-            בחר שיחה או צור שיחה חדשה
+            {t('chat.selectOrCreate')}
           </div>
         )}
       </div>
@@ -255,16 +257,16 @@ export default function Chat() {
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">יצירת שיחה חדשה</h2>
+            <h2 className="text-xl font-bold mb-4">{t('chat.createThread')}</h2>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                כותרת השיחה *
+                {t('chat.threadTitle')} *
               </label>
               <input
                 type="text"
                 value={newThreadTitle}
                 onChange={(e) => setNewThreadTitle(e.target.value)}
-                placeholder="לדוגמה: דיון על הטיול..."
+                placeholder={t('chat.threadTitlePlaceholder')}
                 className="input w-full"
                 autoFocus
                 onKeyDown={(e) => {
@@ -285,14 +287,14 @@ export default function Chat() {
                 }}
                 className="btn-secondary"
               >
-                ביטול
+                {t('common.cancel')}
               </button>
               <button
                 onClick={handleCreateThread}
                 className="btn-primary"
                 disabled={!newThreadTitle.trim()}
               >
-                יצירה
+                {t('common.create')}
               </button>
             </div>
           </div>

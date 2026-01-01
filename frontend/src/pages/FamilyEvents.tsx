@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 interface FamilyEvent {
   id: number;
@@ -16,6 +17,7 @@ interface FamilyEvent {
 
 export default function FamilyEvents() {
   const { t, language } = useLanguage();
+  const { loading: authLoading } = useAuth();
   const [events, setEvents] = useState<FamilyEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,8 +34,10 @@ export default function FamilyEvents() {
   });
 
   useEffect(() => {
-    loadEvents();
-  }, []);
+    if (!authLoading) {
+      loadEvents();
+    }
+  }, [authLoading]);
 
   const loadEvents = async () => {
     try {

@@ -36,31 +36,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
       axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
+      console.log('[Auth] Token loaded from localStorage');
+    } else {
+      console.log('[Auth] No token found in localStorage');
     }
     
     setLoading(false);
   }, []);
 
-  // Axios debug interceptor
+  // Axios request interceptor - always log Authorization header
   useEffect(() => {
-    const enabled = localStorage.getItem('debug') === '1';
-    if (!enabled) return;
     const reqId = axios.interceptors.request.use((config) => {
-      console.log('[HTTP] →', config.method?.toUpperCase(), config.url, config.data || '');
+      const authHeader = config.headers?.['Authorization'] || config.headers?.common?.['Authorization'] || axios.defaults.headers.common['Authorization'];
+      console.log('[HTTP] →', config.method?.toUpperCase(), config.url, authHeader ? '✓ Auth' : '✗ No Auth');
       return config;
     });
-    const resId = axios.interceptors.response.use((res) => {
-      console.log('[HTTP] ←', res.status, res.config.url, res.data || '');
-      return res;
-    }, (error) => {
-      console.warn('[HTTP] ✖', error.response?.status, error.config?.url, error.response?.data || error.message);
-      return Promise.reject(error);
-    });
+    
+    const resId = axios.interceptors.response.use(
+      (res) => {
+        return res;
+      },
+      (error) => {
+        if (error.response?.status === 401) {
+          console.warn('[HTTP] 401 Unauthorized - Token may be invalid or expired');
+          // Clear token and user, redirect will happen via PrivateRoute
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          delete axios.defaults.headers.common['Authorization'];
+          // Don't redirect here - let PrivateRoute handle it
+        }
+        return Promise.reject(error);
+      }
+    );
+    
     return () => {
       axios.interceptors.request.eject(reqId);
       axios.interceptors.response.eject(resId);
     };
-  }, []);
+  }, []); // Note: setUser and setToken are stable, but we include them in the dependency array conceptually
 
   const login = async (email: string, password: string) => {
     const response = await axios.post('/api/auth/login', { email, password });

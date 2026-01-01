@@ -29,7 +29,7 @@ type CalendarItem = CalendarTask | CalendarEvent;
 
 export default function Calendar() {
   const { t, language } = useLanguage();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [view, setView] = useState<'month' | 'week'>('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [items, setItems] = useState<CalendarItem[]>([]);
@@ -37,8 +37,10 @@ export default function Calendar() {
   const [selectedItem, setSelectedItem] = useState<CalendarItem | null>(null);
 
   useEffect(() => {
-    loadCalendarItems();
-  }, [currentDate, view]);
+    if (!authLoading) {
+      loadCalendarItems();
+    }
+  }, [currentDate, view, authLoading]);
 
   const loadCalendarItems = async () => {
     setLoading(true);

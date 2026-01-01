@@ -10,14 +10,14 @@ export default function Dashboard() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [familyInfo, setFamilyInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { t, language } = useLanguage();
 
   useEffect(() => {
-    if (user?.family_id) {
+    if (!authLoading && user?.family_id) {
       loadData();
     }
-  }, [user]);
+  }, [user, authLoading]);
 
   const loadData = async () => {
     try {
@@ -43,18 +43,18 @@ export default function Dashboard() {
     loadData();
   };
 
-  if (!user?.family_id) {
+  if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-xl text-gray-600">{t('tasks.redirectingToFamilySetup')}</div>
+        <div className="text-xl text-gray-600">{t('common.loading')}</div>
       </div>
     );
   }
 
-  if (loading) {
+  if (!user?.family_id) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-xl text-gray-600">{t('common.loading')}</div>
+        <div className="text-xl text-gray-600">{t('tasks.redirectingToFamilySetup')}</div>
       </div>
     );
   }

@@ -25,7 +25,7 @@ interface ChatMessage {
 
 export default function Chat() {
   const { t, language } = useLanguage();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [selectedThread, setSelectedThread] = useState<ChatThread | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -37,8 +37,10 @@ export default function Chat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    loadThreads();
-  }, []);
+    if (!authLoading) {
+      loadThreads();
+    }
+  }, [authLoading]);
 
   useEffect(() => {
     if (selectedThread) {

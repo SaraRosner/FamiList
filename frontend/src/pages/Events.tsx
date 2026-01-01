@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 interface Event {
   id: number;
@@ -25,6 +26,7 @@ const SEVERITY_COLORS: Record<string, string> = {
 
 export default function Events() {
   const { t, language } = useLanguage();
+  const { loading: authLoading } = useAuth();
   const [events, setEvents] = useState<Event[]>([]);
   const [months, setMonths] = useState(1);
   const [subject, setSubject] = useState<string>('');
@@ -51,8 +53,10 @@ export default function Events() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    loadEvents();
-  }, [months, subject]);
+    if (!authLoading) {
+      loadEvents();
+    }
+  }, [months, subject, authLoading]);
 
   const loadEvents = async () => {
     setLoading(true);

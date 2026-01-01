@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 interface Stats {
   user_id: number;
@@ -10,6 +11,7 @@ interface Stats {
 
 export default function Reports() {
   const { t, language } = useLanguage();
+  const { loading: authLoading } = useAuth();
   const [period, setPeriod] = useState('month');
   const [stats, setStats] = useState<Stats[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,16 +22,22 @@ export default function Reports() {
   const [tasksLoading, setTasksLoading] = useState(true);
 
   useEffect(() => {
-    loadStats();
-  }, [period]);
+    if (!authLoading) {
+      loadStats();
+    }
+  }, [period, authLoading]);
 
   useEffect(() => {
-    loadOpen();
-  }, []);
+    if (!authLoading) {
+      loadOpen();
+    }
+  }, [authLoading]);
 
   useEffect(() => {
-    loadTasks();
-  }, []);
+    if (!authLoading) {
+      loadTasks();
+    }
+  }, [authLoading]);
 
   const loadStats = async () => {
     setLoading(true);

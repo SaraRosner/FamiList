@@ -98,12 +98,15 @@ def send_unclaimed_reminders(for_date: datetime = None):
                 
                 if emails:
                     subject, body = build_unclaimed_reminder_email_he(unclaimed_count, family.name, task_titles)
-                    send_email(subject, body, emails)
-                    sent_count += len(emails)
-                    # Use ASCII-safe print to avoid encoding issues on Windows
-                    print(f"[REMINDER] Sent unclaimed reminder to {len(emails)} members (family_id={family.id}) with {unclaimed_count} tasks")
+                    success = send_email(subject, body, emails)
+                    if success:
+                        sent_count += len(emails)
+                        # Use ASCII-safe print to avoid encoding issues on Windows
+                        print(f"[REMINDER] Sent unclaimed reminder to {len(emails)} members (family_id={family.id}) with {unclaimed_count} tasks")
+                    else:
+                        print(f"[REMINDER] FAILED to send unclaimed reminder to {len(emails)} members (family_id={family.id}) - email service error")
         
-        # Mark that we sent reminders for this date
+        # Mark that we sent reminders for this date only if emails were actually sent
         # Use first family ID for tracking (the type field makes it unique anyway)
         first_family = db.query(Family).first()
         if sent_count > 0 and first_family:
@@ -118,6 +121,8 @@ def send_unclaimed_reminders(for_date: datetime = None):
             db.add(reminder)
             db.commit()
             print(f"[REMINDER] Marked reminders as sent for {for_date_str}")
+        elif sent_count == 0:
+            print(f"[REMINDER] No reminders were sent successfully for {for_date_str} - will retry on next check")
         
     except Exception as e:
         print(f"[REMINDER] Error sending unclaimed reminders: {str(e)}")
@@ -173,14 +178,17 @@ def send_due_tomorrow_reminders(for_date: datetime = None):
                 if volunteer and volunteer.email:
                     due_date_str = task.due_date.strftime("%d/%m/%Y")
                     subject, body = build_task_due_tomorrow_email_he(task.title, due_date_str)
-                    send_email(subject, body, [volunteer.email])
-                    sent_count += 1
-                    print(f"[REMINDER] Sent due tomorrow reminder for task_id={task.id} to {volunteer.email}")
+                    success = send_email(subject, body, [volunteer.email])
+                    if success:
+                        sent_count += 1
+                        print(f"[REMINDER] Sent due tomorrow reminder for task_id={task.id} to {volunteer.email}")
+                    else:
+                        print(f"[REMINDER] FAILED to send due tomorrow reminder for task_id={task.id} to {volunteer.email} - email service error")
         
-        # Mark that we sent reminders for this date
+        # Mark that we sent reminders for this date only if emails were actually sent
         # Use first family ID for tracking (the type field makes it unique anyway)
         first_family = db.query(Family).first()
-        if (sent_count > 0 or tasks) and first_family:  # Mark even if no emails sent (to prevent re-checking)
+        if sent_count > 0 and first_family:
             reminder = Reminder(
                 family_id=first_family.id,  # Use first family for tracking (type makes it unique)
                 type=reminder_type,
@@ -192,6 +200,8 @@ def send_due_tomorrow_reminders(for_date: datetime = None):
             db.add(reminder)
             db.commit()
             print(f"[REMINDER] Marked due tomorrow reminders as sent for {for_date_str}")
+        elif sent_count == 0 and len(tasks) > 0:
+            print(f"[REMINDER] No due tomorrow reminders were sent successfully for {for_date_str} - will retry on next check")
         
     except Exception as e:
         print(f"[REMINDER] Error sending due tomorrow reminders: {str(e)}")
@@ -207,45 +217,41 @@ def send_due_tomorrow_reminders(for_date: datetime = None):
 
 def check_and_send_missed_daily_reminders():
     """Check if we missed sending daily reminders and send them if it's within grace period.
-    This is called when server starts - always check if we're within 12 hours of yesterday's 22:00."""
+    This is called when server starts - check if we're within 12 hours of the last 22:00."""
     now = datetime.now(ISRAEL_TZ)
     current_time_str = now.strftime('%Y-%m-%d %H:%M:%S %Z')
     
     print(f"[REMINDER] check_and_send_missed_daily_reminders called at {current_time_str}")
     
-    # Calculate yesterday's 22:00 in Israel timezone
-    # Get today's date at 22:00, then subtract 1 day
+    # Calculate the last 22:00 (either today's if before 22:00, or yesterday's if after 22:00)
     today_22 = now.replace(hour=22, minute=0, second=0, microsecond=0)
-    if now < today_22:
-        # It's before 22:00 today, so we check yesterday's 22:00
-        yesterday_22 = today_22 - timedelta(days=1)
+    if now >= today_22:
+        # It's after 22:00 today, so check if we missed today's 22:00
+        last_22 = today_22
     else:
-        # It's after 22:00 today, so we only care about today's 22:00 (but we won't send it yet)
-        # Actually, if it's after 22:00 today, we should check if we missed today's 22:00
-        # But wait, we only want to check for yesterday's missed reminders on startup
-        # So if it's after 22:00 today, we don't need to check
-        yesterday_22 = today_22 - timedelta(days=1)
+        # It's before 22:00 today, so check yesterday's 22:00
+        last_22 = today_22 - timedelta(days=1)
     
     # Calculate time difference
-    time_diff = (now - yesterday_22).total_seconds()
+    time_diff = (now - last_22).total_seconds()
     time_diff_hours = time_diff / 3600
     
-    print(f"[REMINDER] Calculated yesterday 22:00: {yesterday_22.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+    print(f"[REMINDER] Calculated last 22:00: {last_22.strftime('%Y-%m-%d %H:%M:%S %Z')}")
+    print(f"[REMINDER] Current time: {now.strftime('%Y-%m-%d %H:%M:%S %Z')}")
     print(f"[REMINDER] Time difference: {time_diff_hours:.2f} hours ({time_diff:.0f} seconds)")
     
     # Grace period: at least 10 minutes (to avoid duplicate if server restarted right at 22:00)
     # and up to 12 hours (reasonable grace period - until 10:00 next day)
     if 600 <= time_diff <= 43200:  # 10 minutes to 12 hours
         print(f"[REMINDER] Time difference is within grace period ({time_diff_hours:.2f}h) - sending missed reminders")
-        print(f"[REMINDER] Current time: {now.strftime('%Y-%m-%d %H:%M:%S %Z')}")
-        print(f"[REMINDER] Yesterday 22:00: {yesterday_22.strftime('%Y-%m-%d %H:%M:%S %Z')}")
-        print(f"[REMINDER] Time since yesterday 22:00: {time_diff_hours:.2f} hours")
+        print(f"[REMINDER] Sending reminders for date: {last_22.date()}")
         
         try:
             print("[REMINDER] Sending missed unclaimed reminders...")
-            send_unclaimed_reminders(yesterday_22)
+            # Pass the date (yesterday's date) to the function
+            send_unclaimed_reminders(last_22)
             print("[REMINDER] Sending missed due tomorrow reminders...")
-            send_due_tomorrow_reminders(yesterday_22)
+            send_due_tomorrow_reminders(last_22)
             print("[REMINDER] Completed sending missed reminders")
         except Exception as e:
             print(f"[REMINDER] Error sending missed reminders: {e}")
@@ -256,7 +262,7 @@ def check_and_send_missed_daily_reminders():
         if time_diff < 600:
             print(f"[REMINDER] Too soon after 22:00 - might be duplicate")
         elif time_diff > 43200:
-            print(f"[REMINDER] Too late - more than 12 hours have passed")
+            print(f"[REMINDER] Too late - more than 12 hours have passed since {last_22.strftime('%Y-%m-%d %H:%M:%S %Z')}")
 
 def start_reminder_service():
     """Start the reminder service"""

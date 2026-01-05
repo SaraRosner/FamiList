@@ -15,9 +15,13 @@ def is_sendgrid_configured() -> bool:
     return bool(settings.SENDGRID_API_KEY and settings.SMTP_FROM_EMAIL)
 
 
-def send_email(subject: str, body: str, recipients: List[str]) -> None:
+def send_email(subject: str, body: str, recipients: List[str]) -> bool:
+    """
+    Send email to recipients.
+    Returns True if sent successfully, False otherwise.
+    """
     if not recipients:
-        return
+        return False
 
     # Prefer SendGrid if configured
     if is_sendgrid_configured():
@@ -39,33 +43,38 @@ def send_email(subject: str, body: str, recipients: List[str]) -> None:
             )
             if resp.status_code >= 300:
                 print("[EMAIL] SendGrid error:", resp.status_code, resp.text)
+                return False
+            return True
         except Exception as e:
             print("[EMAIL] SendGrid exception:", e)
-        return
+            return False
 
     if not is_smtp_configured():
         # Fallback: log to console for development
         print("[EMAIL-LOG] Subject:", subject)
         print("[EMAIL-LOG] To:", ", ".join(recipients))
         print("[EMAIL-LOG] Body:\n", body)
-        return
-
-    msg = MIMEText(body, _charset="utf-8")
-    msg["Subject"] = subject
-    msg["From"] = formataddr((settings.SMTP_FROM_NAME, settings.SMTP_FROM_EMAIL))
-    msg["To"] = ", ".join(recipients)
-
-    if settings.SMTP_USER and settings.SMTP_PASS:
-        server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
-        server.starttls()
-        server.login(settings.SMTP_USER, settings.SMTP_PASS)
-    else:
-        server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
+        return True  # Return True for logging mode
 
     try:
+        msg = MIMEText(body, _charset="utf-8")
+        msg["Subject"] = subject
+        msg["From"] = formataddr((settings.SMTP_FROM_NAME, settings.SMTP_FROM_EMAIL))
+        msg["To"] = ", ".join(recipients)
+
+        if settings.SMTP_USER and settings.SMTP_PASS:
+            server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
+            server.starttls()
+            server.login(settings.SMTP_USER, settings.SMTP_PASS)
+        else:
+            server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
+
         server.sendmail(settings.SMTP_FROM_EMAIL, recipients, msg.as_string())
-    finally:
         server.quit()
+        return True
+    except Exception as e:
+        print("[EMAIL] SMTP error:", e)
+        return False
 
 
 def build_task_created_email_he(task_title: str, creator_name: str, volunteer_name: str | None) -> tuple[str, str]:

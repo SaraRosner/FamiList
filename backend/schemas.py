@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from typing import Optional, List, Literal
 from datetime import datetime
 
 # User Schemas
@@ -182,3 +182,17 @@ class MessageResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     error: str
+
+
+# Member management schemas
+MemberRole = Literal["ADMIN", "MEMBER", "RESTRICTED"]
+
+
+class MemberCreate(BaseModel):
+    name: str
+    email: EmailStr
+    role: MemberRole = "MEMBER"
+
+
+class MemberRoleUpdate(BaseModel):
+    role: MemberRole

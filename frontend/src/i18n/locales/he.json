@@ -18,6 +18,7 @@
     "chat": "צ'אטים",
     "familyEvents": "אירועים משפחתיים",
     "calendar": "יומן",
+    "familySettings": "הגדרות משפחה",
     "logout": "יציאה"
   },
   "tasks": {
@@ -222,5 +223,23 @@
     "endDate": "תאריך סיום",
     "close": "סגור",
     "days": ["א", "ב", "ג", "ד", "ה", "ו", "ש"]
+  },
+  "familySettings": {
+    "title": "חברי משפחה",
+    "subtitle": "ניהול הרשאות ותפקידי בני המשפחה",
+    "addMember": "הוסף חבר משפחה",
+    "name": "שם",
+    "email": "דוא\"ל",
+    "role": "תפקיד",
+    "roleAdmin": "מנהל/ת",
+    "roleMember": "חבר/ת משפחה",
+    "roleRestricted": "גישה מוגבלת",
+    "you": "את/ה",
+    "noMembers": "עדיין אין חברי משפחה במערכת",
+    "saving": "שומר...",
+    "save": "שמור",
+    "errorLoading": "תקלה בטעינת חברי המשפחה",
+    "errorAdd": "תקלה בהוספת חבר משפחה",
+    "errorUpdateRole": "תקלה בעדכון התפקיד"
   }
 }

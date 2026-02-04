@@ -3,7 +3,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import init_db
 from reminder_service import start_reminder_service, stop_reminder_service
-from routers import auth_routes, family_routes, task_routes, report_routes, event_routes, chat_routes, family_event_routes, calendar_routes
+from routers import (
+    auth_routes,
+    family_routes,
+    task_routes,
+    report_routes,
+    event_routes,
+    chat_routes,
+    family_event_routes,
+    calendar_routes,
+    member_routes,
+)
 from config import settings
 import time
 
@@ -44,6 +54,7 @@ app.include_router(event_routes.router, prefix="/api")
 app.include_router(chat_routes.router, prefix="/api")
 app.include_router(family_event_routes.router, prefix="/api")
 app.include_router(calendar_routes.router, prefix="/api")
+app.include_router(member_routes.router, prefix="/api")
 
 # Debug request logging middleware
 if settings.DEBUG:

@@ -18,6 +18,7 @@
     "chat": "Chats",
     "familyEvents": "Family Events",
     "calendar": "Calendar",
+    "familySettings": "Family Settings",
     "logout": "Logout"
   },
   "tasks": {
@@ -222,5 +223,23 @@
     "endDate": "End Date",
     "close": "Close",
     "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+  },
+  "familySettings": {
+    "title": "Family Members",
+    "subtitle": "Manage roles and permissions for your family",
+    "addMember": "Add Member",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "roleAdmin": "Admin",
+    "roleMember": "Member",
+    "roleRestricted": "Restricted",
+    "you": "You",
+    "noMembers": "No family members yet",
+    "saving": "Saving...",
+    "save": "Save",
+    "errorLoading": "Error loading family members",
+    "errorAdd": "Error adding member",
+    "errorUpdateRole": "Error updating member role"
   }
 }

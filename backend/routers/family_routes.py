@@ -30,8 +30,9 @@ def create_family(
     db.commit()
     db.refresh(family)
     
-    # Update user's family_id
+    # Update user's family_id and make them ADMIN of this family
     current_user.family_id = family.id
+    current_user.role = "ADMIN"
     db.commit()
     db.refresh(current_user)
     

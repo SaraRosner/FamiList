@@ -44,6 +44,11 @@ export default function Layout() {
                   <Link to="/calendar" className="text-gray-700 hover:text-primary-600 transition-colors">
                     {t('nav.calendar')}
                   </Link>
+                  {user?.role?.toUpperCase() === 'ADMIN' && (
+                    <Link to="/family-settings" className="text-gray-700 hover:text-primary-600 transition-colors">
+                      {t('nav.familySettings')}
+                    </Link>
+                  )}
                 </>
               )}
             </div>

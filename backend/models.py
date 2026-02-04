@@ -26,7 +26,8 @@ class User(Base):
     password = Column(String, nullable=False)
     name = Column(String, nullable=False)
     family_id = Column(Integer, ForeignKey("families.id"), nullable=True)
-    role = Column(String, default="member")
+    # Role within the family (ADMIN, MEMBER, RESTRICTED)
+    role = Column(String, default="MEMBER")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
